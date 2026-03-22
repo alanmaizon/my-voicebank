@@ -1,0 +1,11 @@
+# Record exact versions here once installed.
+# Example format:
+#
+# DiffSinger commit:
+# MakeDiffSinger commit:
+# SOME commit:
+# Montreal Forced Aligner:
+# Python:
+# PyTorch:
+# CUDA:
+# OpenVPI vocoder release:
