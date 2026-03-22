@@ -7,7 +7,10 @@ tools/MakeDiffSinger/*
 !tools/MakeDiffSinger/.gitkeep
 tools/SOME/*
 !tools/SOME/.gitkeep
+tools/audio-slicer/*
+!tools/audio-slicer/.gitkeep
 
+datasets/*
 datasets/*/raw/wavs/*.wav
 datasets/*/exports/midi/*
 !datasets/*/exports/midi/.gitkeep
@@ -18,6 +21,8 @@ datasets/*/exports/ds/*
 
 models/vocoder/*
 !models/vocoder/.gitkeep
+models/some/*
+!models/some/.gitkeep
 models/acoustic/*
 !models/acoustic/.gitkeep
 models/variance/*
@@ -34,3 +39,7 @@ renders/demos/*
 !renders/demos/.gitkeep
 renders/ab-tests/*
 !renders/ab-tests/.gitkeep
+
+staging/*
+!staging/.gitkeep
+#

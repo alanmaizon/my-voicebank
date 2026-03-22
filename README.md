@@ -36,6 +36,27 @@ Clone the upstream tools into `tools/`:
 
 Keep `env/package-versions.txt` updated as you install Conda envs, MFA, pretrained checkpoints, and vocoders. That makes it much easier to reproduce a working setup later.
 
+## Bootstrap Scripts
+
+The repo now includes a reproducible phase-1 setup path under `scripts/`:
+
+- `scripts/bootstrap_tools.sh` clones the upstream OpenVPI repos into `tools/`.
+- `scripts/create_envs.sh` creates separate Conda-style envs for DiffSinger, SOME, and MFA.
+- `scripts/download_assets.sh` downloads a current OpenVPI community vocoder by default and can optionally fetch a SOME checkpoint and RMVPE.
+- `scripts/smoke_test.md` is the week-one checklist for proving the pipeline boots before you record a real corpus.
+
+Default run order:
+
+1. `bash scripts/bootstrap_tools.sh`
+2. `bash scripts/create_envs.sh`
+3. `bash scripts/download_assets.sh`
+
+If you want the smoke-test path to include SOME inference immediately, enable the optional downloads:
+
+```bash
+DOWNLOAD_SOME_MODEL=1 DOWNLOAD_RMVPE=1 bash scripts/download_assets.sh
+```
+
 ## Clip Naming Rules
 
 Use a simple, stable naming scheme from day one:
