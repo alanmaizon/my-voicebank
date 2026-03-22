@@ -43,3 +43,6 @@ renders/ab-tests/*
 staging/*
 !staging/.gitkeep
 #
+
+datasets/*
+!datasets/.gitkeep
