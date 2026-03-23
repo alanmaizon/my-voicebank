@@ -46,3 +46,6 @@ staging/*
 
 datasets/*
 !datasets/.gitkeep
+datasets/singer_v1/*
+!datasets/singer_v1/.gitkeep
+datasets/singer_v1/raw/transcriptions.csv
