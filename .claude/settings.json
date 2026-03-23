@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd /Users/alanmaizon/my-voicebank/scripts/prepare_alignment_staging.py)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\(''/Users/alanmaizon/my-voicebank/scripts/prepare_alignment_staging.py''\\).read\\(\\)\\)\")"
+    ]
+  }
+}
