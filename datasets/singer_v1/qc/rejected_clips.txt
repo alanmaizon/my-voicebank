@@ -1,6 +1,0 @@
-# One clip ID per line.
-# Add a short reason after a comma if useful.
-#
-# Example:
-# 000031,clipped peak on final vowel
-# 000044,room noise
