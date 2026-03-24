@@ -1,0 +1,106 @@
+base_config:
+  - configs/acoustic.yaml
+
+# Dataset — edit for your singer profile
+dictionaries:
+  en: dictionaries/english_ipa.txt
+
+datasets:
+  - raw_data_dir: data/<SINGER_NAME>/raw
+    speaker: <SINGER_NAME>
+    spk_id: 0
+    language: en
+    test_prefixes:
+      # List clip names to hold out for validation
+      - '000001'
+      - '000002'
+
+binary_data_dir: data/<SINGER_NAME>/binary
+
+# Vocoder
+vocoder: NsfHifiGAN
+vocoder_ckpt: checkpoints/pc_nsf_hifigan_44.1k_hop512_128bin_2025.02/model.ckpt
+
+# Audio (match vocoder — do not change unless you use a different vocoder)
+audio_sample_rate: 44100
+audio_num_mel_bins: 128
+hop_size: 512
+fft_size: 2048
+win_size: 2048
+fmin: 40
+fmax: 16000
+
+# Pitch extraction
+pe: rmvpe
+pe_ckpt: checkpoints/rmvpe/model.pt
+
+# Harmonic-noise separation (world = CPU-based, no extra model needed)
+hnsep: world
+
+# Single speaker, single language
+use_spk_id: false
+num_spk: 1
+use_lang_id: false
+num_lang: 1
+
+# Backbone — adjust based on your GPU
+# Mac/CPU:  num_channels: 256, num_layers: 4
+# T4 16GB:  num_channels: 512, num_layers: 6
+# L4 24GB:  num_channels: 512, num_layers: 6
+backbone_args:
+  num_channels: 512
+  num_layers: 6
+  kernel_size: 31
+  dropout_rate: 0.1
+  strong_cond: true
+
+# Disable shallow diffusion (saves ~50% memory)
+use_shallow_diffusion: false
+
+# Set finetune_enabled: true to resume from a pretrained checkpoint
+finetune_enabled: false
+finetune_ckpt_path: null
+# finetune_strict_shapes: false  # Set to false if phoneme set changed
+
+# Training
+optimizer_args:
+  optimizer_cls: torch.optim.AdamW
+  lr: 0.0006
+  beta1: 0.9
+  beta2: 0.98
+  weight_decay: 0
+lr_scheduler_args:
+  scheduler_cls: torch.optim.lr_scheduler.StepLR
+  step_size: 5000
+  gamma: 0.75
+
+# Batch size — adjust for your hardware
+# Mac/CPU:  max_batch_frames: 6000,  max_batch_size: 4
+# T4 16GB:  max_batch_frames: 24000, max_batch_size: 8
+# L4 24GB:  max_batch_frames: 40000, max_batch_size: 16
+max_batch_frames: 24000
+max_batch_size: 8
+max_updates: 160000
+val_check_interval: 2000
+num_valid_plots: 5
+num_ckpt_keep: 3
+permanent_ckpt_start: 20000
+permanent_ckpt_interval: 20000
+
+# Precision — use 16-mixed on GPU, 32 on CPU
+# pl_trainer_accelerator: cpu  # Uncomment for Mac/CPU training
+pl_trainer_precision: 16-mixed
+
+# Binarization
+binarization_args:
+  shuffle: true
+  num_workers: 2
+
+# Augmentation (enable after initial training converges)
+augmentation_args:
+  random_pitch_shifting:
+    enabled: false
+  fixed_pitch_shifting:
+    enabled: false
+  random_time_stretching:
+    enabled: false

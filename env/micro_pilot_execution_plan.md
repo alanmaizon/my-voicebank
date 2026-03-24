@@ -101,8 +101,8 @@ Prompt design rules:
 
 By the end of the micro-pilot, these should exist:
 
-- `datasets/singer_v1/raw/wavs/*.wav`
-- `datasets/singer_v1/raw/transcriptions.csv`
+- `datasets/<singer>/raw/wavs/*.wav`
+- `datasets/<singer>/raw/transcriptions.csv`
 - `experiments/acoustic_ft_v0/` for run notes and config copies
 - `tools/DiffSinger/checkpoints/acoustic_ft_v0/` with at least one checkpoint
 - `renders/demos/acoustic_ft_v0_smoke.wav`
@@ -113,8 +113,8 @@ By the end of the micro-pilot, these should exist:
 
 - Record 18-24 dry mono clips.
 - Rename final accepted clips to six-digit IDs.
-- Put only accepted clips in `datasets/singer_v1/raw/wavs/`.
-- Add one CSV row per clip in `datasets/singer_v1/raw/transcriptions.csv`.
+- Put only accepted clips in `datasets/<singer>/raw/wavs/`.
+- Add one CSV row per clip in `datasets/<singer>/raw/transcriptions.csv`.
 
 Required CSV fields at this point:
 
@@ -151,7 +151,7 @@ Notes:
 ### 4. Train a tiny acoustic checkpoint
 
 - Copy a minimal acoustic config into `experiments/acoustic_ft_v0/`.
-- Point it at `datasets/singer_v1/raw`.
+- Point it at `datasets/<singer>/raw`.
 - Keep validation small.
 - Train only long enough to confirm binarization, checkpoint writing, and inference compatibility.
 
@@ -245,5 +245,5 @@ You can say the acoustic path is proven when this sentence is true:
 ## Immediate Next 3 Actions
 
 1. Record 18-24 clean room clips from the prompt list above.
-2. Populate `name` and `txt` rows in `datasets/singer_v1/raw/transcriptions.csv`, then run alignment through final `ph_seq` / `ph_dur` / `ph_num`.
+2. Populate `name` and `txt` rows in `datasets/<singer>/raw/transcriptions.csv`, then run alignment through final `ph_seq` / `ph_dur` / `ph_num`.
 3. Train `acoustic_ft_v0` just long enough to produce one checkpoint and one successful acoustic inference render.

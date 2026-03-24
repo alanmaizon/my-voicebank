@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import csv
+import json
+import os
 import re
 import unicodedata
 from pathlib import Path
@@ -10,20 +12,32 @@ WORD_CHAR_RE = re.compile(r"[^a-z'\s-]+")
 SPACE_RE = re.compile(r"\s+")
 VOCALIZING_TAG_RE = re.compile(r"\[vocalizing\]", re.IGNORECASE)
 
-# Sung/informal spellings → standard dictionary forms
-SUNG_SPELLING_MAP = {
-    "loomin": "looming",
-    "goin": "going",
-    "fuckin": "fucking",
-    "thinkin": "thinking",
-}
+
+def load_spelling_map(path: str | None = None) -> dict[str, str]:
+    """Load sung/informal spelling -> standard dictionary form mappings.
+
+    Reads from a JSON file (key->value pairs). Path can be passed explicitly
+    or set via the SUNG_SPELLING_MAP environment variable.
+    Returns an empty dict if no file is configured.
+    """
+    path = path or os.environ.get("SUNG_SPELLING_MAP")
+    if not path:
+        return {}
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"Spelling map not found: {p}")
+    return json.loads(p.read_text(encoding="utf-8"))
 
 
-def normalize_english_text(text: str, drop_apostrophes: bool = False) -> str:
+def normalize_english_text(
+    text: str, drop_apostrophes: bool = False, spelling_map: dict[str, str] | None = None
+) -> str:
+    if spelling_map is None:
+        spelling_map = {}
     text = VOCALIZING_TAG_RE.sub("", text)
     text = unicodedata.normalize("NFKC", text)
-    text = text.replace("’", "'").replace("‘", "'")
-    text = text.replace("“", '"').replace("”", '"')
+    text = text.replace("\u2019", "'").replace("\u2018", "'")
+    text = text.replace("\u201c", '"').replace("\u201d", '"')
     text = text.replace("-", " ")
     text = text.lower()
     text = WORD_CHAR_RE.sub(" ", text)
@@ -34,7 +48,7 @@ def normalize_english_text(text: str, drop_apostrophes: bool = False) -> str:
         text = re.sub(r"(^|[^a-z])'+", r"\1", text)
         text = re.sub(r"'+([^a-z]|$)", r"\1", text)
     words = text.split()
-    words = [SUNG_SPELLING_MAP.get(w, w) for w in words]
+    words = [spelling_map.get(w, w) for w in words]
     text = " ".join(words)
     text = SPACE_RE.sub(" ", text).strip()
     return text
@@ -62,7 +76,15 @@ def main():
         action="store_true",
         help="Remove apostrophes from normalized labels",
     )
+    parser.add_argument(
+        "--spelling-map",
+        type=str,
+        default=None,
+        help="Path to JSON file mapping informal spellings to dictionary forms (or set SUNG_SPELLING_MAP env var)",
+    )
     args = parser.parse_args()
+
+    spelling_map = load_spelling_map(args.spelling_map)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -88,7 +110,7 @@ def main():
             missing_txt_rows.append({"name": name})
             continue
 
-        normalized = normalize_english_text(txt, drop_apostrophes=args.drop_apostrophes)
+        normalized = normalize_english_text(txt, drop_apostrophes=args.drop_apostrophes, spelling_map=spelling_map)
         if not normalized:
             missing_txt_rows.append({"name": name})
             continue

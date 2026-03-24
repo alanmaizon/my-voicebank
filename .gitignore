@@ -1,4 +1,11 @@
 .DS_Store
+.claude/
+scripts/__pycache__/
+*.zip
+*.wav
+*.ckpt
+txt.txt
+*_sliced/
 
 # Keep the repo lightweight; store heavy artifacts locally.
 tools/DiffSinger/*
@@ -10,15 +17,11 @@ tools/SOME/*
 tools/audio-slicer/*
 !tools/audio-slicer/.gitkeep
 
+# Datasets — only track the example_singer template
 datasets/*
-datasets/*/raw/wavs/*.wav
-datasets/*/exports/midi/*
-!datasets/*/exports/midi/.gitkeep
-datasets/*/exports/labs/*
-!datasets/*/exports/labs/.gitkeep
-datasets/*/exports/ds/*
-!datasets/*/exports/ds/.gitkeep
+!datasets/example_singer/
 
+# Pretrained models
 models/vocoder/*
 !models/vocoder/.gitkeep
 models/some/*
@@ -28,24 +31,20 @@ models/acoustic/*
 models/variance/*
 !models/variance/.gitkeep
 
-experiments/acoustic_ft_v1/*
-!experiments/acoustic_ft_v1/.gitkeep
-experiments/acoustic_ft_v2/*
-!experiments/acoustic_ft_v2/.gitkeep
-experiments/variance_ft_v1/*
-!experiments/variance_ft_v1/.gitkeep
+# Experiments / checkpoints
+experiments/*/
+!experiments/.gitkeep
 
+# Renders
+renders/*
+!renders/.gitkeep
+!renders/demos/
+!renders/ab-tests/
 renders/demos/*
 !renders/demos/.gitkeep
 renders/ab-tests/*
 !renders/ab-tests/.gitkeep
 
+# Staging area
 staging/*
 !staging/.gitkeep
-#
-
-datasets/*
-!datasets/.gitkeep
-datasets/singer_v1/*
-!datasets/singer_v1/.gitkeep
-datasets/singer_v1/raw/transcriptions.csv

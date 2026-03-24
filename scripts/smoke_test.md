@@ -77,8 +77,8 @@ If RMVPE was downloaded, it should live under `tools/SOME/pretrained/`.
 Before using `batch_infer.py --overwrite`, make a backup:
 
 ```bash
-cp datasets/singer_v1/raw/transcriptions.csv \
-  datasets/singer_v1/backups/transcriptions.smoke-test.csv
+cp datasets/<singer>/raw/transcriptions.csv \
+  datasets/<singer>/backups/transcriptions.smoke-test.csv
 ```
 
 Then confirm the input dataset already has:
