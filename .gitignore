@@ -1,6 +1,7 @@
 .DS_Store
 .claude/
-scripts/__pycache__/
+__pycache__/
+*.pyc
 *.zip
 *.wav
 *.ckpt

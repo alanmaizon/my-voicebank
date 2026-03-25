@@ -1,44 +1,45 @@
-# my-voicebank
+# My Voicebank
 
-A reproducible pipeline for training [DiffSinger](https://github.com/openvpi/DiffSinger) singing voice synthesis models from scratch on your own recordings.
+Train a singing voice model from your own recordings — no pre-existing datasets, no third-party voice cloning. Just your mic, your voice, and an open-source stack.
 
-Built around the OpenVPI ecosystem: DiffSinger, MakeDiffSinger, SOME, and Montreal Forced Aligner.
+This repo wraps the [OpenVPI](https://github.com/openvpi) ecosystem (DiffSinger, SOME, MFA) into a single reproducible workflow: record clips, label them, train, render.
 
-## What you get
+> **[View the visual guide →](https://alanmaizon.github.io/my-voicebank/)**
 
-- Scripts for the full labeling pipeline: slicing, text normalization, forced alignment, note extraction
-- Training configs and notebooks for Colab / GCE / local Mac
-- A clean project structure that separates code from data
+---
 
-## Quick start
+## The pipeline at a glance
+
+```
+ Record WAVs ──→ Transcribe ──→ Align (MFA) ──→ Extract notes (SOME) ──→ Binarize ──→ Train ──→ Sing
+```
+
+Each step has a dedicated script. The CSV is your single source of truth — every script reads from it or writes back to it. Nothing is hidden in config files or scattered across directories.
+
+## Setup
 
 ```bash
-# 1. Clone and bootstrap tools
-git clone https://github.com/<you>/my-voicebank.git
-cd my-voicebank
-bash scripts/bootstrap_tools.sh
-
-# 2. Create conda environments (DiffSinger, SOME, MFA)
-bash scripts/create_envs.sh
-
-# 3. Download vocoder (and optionally SOME + RMVPE models)
-bash scripts/download_assets.sh
-# DOWNLOAD_SOME_MODEL=1 DOWNLOAD_RMVPE=1 bash scripts/download_assets.sh
+git clone https://github.com/<you>/my-voicebank.git && cd my-voicebank
+bash scripts/bootstrap_tools.sh          # clone OpenVPI repos
+bash scripts/create_envs.sh              # conda envs: diffsinger, some, mfa
+bash scripts/download_assets.sh          # vocoder checkpoint
 ```
 
-## Training guide
+Three conda environments are created: `myvb-diffsinger` (training + inference), `myvb-some` (note extraction), `myvb-mfa` (forced alignment). Each is isolated so dependency conflicts stay out of your way.
 
-### 1. Prepare recordings
+## From recording to render
 
-Place mono 44.1kHz WAV files in `datasets/<singer>/raw/wavs/`, named with 6-digit IDs:
+### Record
 
+Sing short phrases (2–6 seconds each) into a decent mic. Dry, mono, 44.1 kHz. No reverb, no backing track. Rename clips to 6-digit IDs or let the rename script do it:
+
+```bash
+python scripts/batch_rename_clips.py datasets/my_singer/raw/wavs/
 ```
-datasets/my_singer/raw/wavs/000001.wav
-datasets/my_singer/raw/wavs/000002.wav
-...
-```
 
-### 2. Scaffold transcriptions.csv
+### Label
+
+Scaffold an empty CSV, then type in the lyrics:
 
 ```bash
 python scripts/scaffold_transcriptions.py \
@@ -46,161 +47,103 @@ python scripts/scaffold_transcriptions.py \
     datasets/my_singer/raw/wavs/
 ```
 
-Then fill in the `txt` column with the sung lyrics for each clip.
+### Align
 
-### 3. Forced alignment (MFA)
-
-Generate `.lab` files and run Montreal Forced Aligner:
+Turn lyrics into timed phoneme sequences using Montreal Forced Aligner:
 
 ```bash
-# Create .lab files from lyrics
 python scripts/prepare_alignment_staging.py \
     datasets/my_singer/raw/transcriptions.csv \
     datasets/my_singer/raw/wavs/ \
-    datasets/my_singer/exports/labs/staging/ \
-    --spelling-map configs/spelling_map_example.json  # optional
+    datasets/my_singer/exports/labs/staging/
 
-# Run MFA (use the myvb-mfa conda env)
-mfa align \
-    datasets/my_singer/exports/labs/staging/ \
-    english_mfa english_mfa \
+mfa align datasets/my_singer/exports/labs/staging/ english_mfa english_mfa \
     datasets/my_singer/exports/labs/aligned/
 
-# Fill ph_seq, ph_dur, ph_num from TextGrids
 python scripts/fill_ph_from_textgrids.py \
     datasets/my_singer/raw/transcriptions.csv \
     datasets/my_singer/exports/labs/aligned/
 ```
 
-If MFA reports OOV words, create an OOV supplement dictionary and merge it:
+If MFA flags out-of-vocabulary words, you can supply a custom dictionary or use the `--spelling-map` option to remap informal spellings before alignment.
+
+### Extract notes
+
+SOME estimates pitch contours from audio and converts them into discrete note events:
 
 ```bash
-mfa align \
-    datasets/my_singer/exports/labs/staging/ \
-    /path/to/extended_dictionary.dict english_mfa \
-    datasets/my_singer/exports/labs/aligned/
-```
-
-### 4. Note extraction (SOME)
-
-```bash
-/path/to/myvb-some/bin/python3 scripts/batch_some_infer.py \
+python scripts/batch_some_infer.py \
     datasets/my_singer/raw/transcriptions.csv \
     datasets/my_singer/raw/wavs/ \
     models/some/0831_opencpop_ds1000.ckpt \
     --midi-dir datasets/my_singer/exports/midi/
 ```
 
-### 5. Binarize
+### Train
 
-Copy your labeled data into the DiffSinger data directory and run binarization:
+Binarize the dataset inside `tools/DiffSinger/`, point your config at the data, and go:
 
 ```bash
 cd tools/DiffSinger
-
-# Copy config (edit the template for your singer first)
-cp ../../configs/acoustic_template.yaml configs/my_singer_acoustic.yaml
-# Edit configs/my_singer_acoustic.yaml — set singer name, test_prefixes, etc.
-
-# Copy dictionary
-cp ../../datasets/my_singer/exports/labs/english_ipa.txt dictionaries/
-
-# Link or copy raw data
-ln -s ../../datasets/my_singer/raw data/my_singer/raw
-
-# Binarize
 python scripts/binarize.py --config configs/my_singer_acoustic.yaml
+python scripts/train.py --config configs/my_singer_acoustic.yaml --exp_name my_singer_acoustic
 ```
 
-### 6. Train
+A Colab notebook and a GCE setup script are included for GPU training — see `notebooks/` and `scripts/gce_train_setup.sh`.
 
-**Local (Mac/CPU):**
-```bash
-python scripts/train.py --config configs/my_singer_acoustic.yaml --exp_name my_singer_acoustic --reset
-```
+### Render
 
-**Google Colab:**
-Upload `<singer>_binary.zip` and your config YAML to Google Drive, then open `notebooks/train_colab.ipynb`.
-
-**GCE VM:**
-```bash
-# Upload binarized data
-gcloud compute scp my_singer_binary.zip <instance>:~/
-
-# Run setup
-SINGER_NAME=my_singer \
-CONFIG_FILE=configs/my_singer_acoustic.yaml \
-DICTIONARY_FILE=dictionaries/english_ipa.txt \
-bash scripts/gce_train_setup.sh
-
-# Start training
-cd DiffSinger
-python scripts/train.py --config configs/my_singer_acoustic.yaml --exp_name my_singer_acoustic --reset
-```
-
-### 7. Inference
+Build a `.ds` inference file from one of your aligned clips, then run the acoustic model:
 
 ```bash
-# Generate .ds file
-python scripts/make_ds_from_csv.py \
-    --clip 000001 \
+python scripts/make_ds_from_csv.py --clip 000001 \
     --csv datasets/my_singer/raw/transcriptions.csv
 
-# Run DiffSinger inference
 cd tools/DiffSinger
 python scripts/infer.py acoustic ../../renders/000001.ds --exp my_singer_acoustic
 ```
 
-## Project structure
+---
+
+## The CSV contract
+
+Everything flows through `transcriptions.csv`. Eight columns, one row per clip:
+
+| Column | Filled by | What it holds |
+|--------|-----------|---------------|
+| `name` | you | Clip ID — matches the WAV filename |
+| `txt` | you | Sung lyrics for the clip |
+| `ph_seq` | MFA | IPA phoneme sequence |
+| `ph_dur` | MFA | Duration of each phoneme (seconds) |
+| `ph_num` | MFA | Phone count per word group |
+| `note_seq` | SOME | Note names (`C4`, `rest`, …) |
+| `note_dur` | SOME | Duration of each note (seconds) |
+| `comments` | you | QC flags — prefix with `exclude:` to skip a clip |
+
+## Project layout
 
 ```
-my-voicebank/
-  configs/                 Training config templates, spelling maps
-  datasets/<singer>/raw/   Source WAVs + transcriptions.csv
-  datasets/<singer>/exports/  Generated labs, MIDI, ds files
-  models/                  Pretrained checkpoints (vocoder, SOME, RMVPE)
-  tools/                   Cloned OpenVPI repos (gitignored)
-  scripts/                 Pipeline scripts
-  notebooks/               Colab training notebook
-  experiments/             Training runs and checkpoints
-  renders/                 Inference outputs
+configs/              Training templates, spelling maps
+datasets/<singer>/    raw/ (wavs + csv), exports/ (labs, midi, ds), qc/, backups/
+models/               Pretrained checkpoints (vocoder, SOME, RMVPE)
+tools/                Cloned OpenVPI repos (gitignored, bootstrapped locally)
+scripts/              Everything that touches the pipeline
+notebooks/            Colab training notebook
+experiments/          Checkpoint output
+renders/              Inference audio
 ```
 
-## transcriptions.csv format
+## Things I learned the hard way
 
-| Column | Description |
-|--------|-------------|
-| `name` | Clip ID matching WAV filename (e.g. `000001`) |
-| `txt` | Sung lyrics |
-| `ph_seq` | Space-separated IPA phonemes from MFA |
-| `ph_dur` | Space-separated durations (seconds), 1:1 with ph_seq |
-| `ph_num` | Phone count per word/silence group |
-| `note_seq` | Note names from SOME (`C4`, `rest`, etc.) |
-| `note_dur` | Note durations (seconds) |
-| `comments` | QC flags; `exclude:` prefix removes clip from training |
-
-## Environment variables
-
-| Variable | Used by | Purpose |
-|----------|---------|---------|
-| `SUNG_SPELLING_MAP` | `prepare_alignment_staging.py` | Path to JSON spelling map file |
-| `SINGER_NAME` | `gce_train_setup.sh` | Singer profile name |
-| `BINARY_ZIP` | `gce_train_setup.sh` | Path to binarized dataset zip |
-| `CONFIG_FILE` | `gce_train_setup.sh` | Path to training config YAML |
-| `DICTIONARY_FILE` | `gce_train_setup.sh` | Path to phoneme dictionary |
-
-## Tips
-
-- **Back up transcriptions.csv** before any bulk operation
-- **Avoid commas in lyrics** — simpler than quoting CSV fields
-- **Mark bad clips** with `exclude:` in the comments column rather than deleting rows
-- **Start small** — 50-100 clips (~10-15 min) is enough for a first training run
-- Train on GPU (T4/L4) for reasonable speed; CPU works but is very slow
-- Enable pitch augmentation after your base model converges to improve robustness
+- **Back up the CSV before bulk writes.** The scripts overwrite in place.
+- **Avoid commas in lyrics.** Easier than quoting CSV fields correctly.
+- **50–100 clips is enough to start.** You can always record more after the first pass proves the pipeline works.
+- **Mark bad clips with `exclude:` in comments** instead of deleting rows — keeps the audit trail intact.
+- **GPU matters.** A T4 or L4 will train in hours; CPU will take days.
 
 ## Ethics
 
-Only record and model voices you have the right to use. This toolkit is intended for personal and creative use with consent.
+Only model voices you have consent to use. This toolkit is built for personal and creative work — not for cloning someone without their knowledge.
 
 ## License
 

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>my-voicebank — Your voice. A model. Yours to keep.</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600&display=swap');
+
+  :root {
+    --cream: #f5f0e8;
+    --cream-dark: #ece5d8;
+    --grid-line: rgba(180, 168, 148, 0.25);
+    --grid-line-major: rgba(160, 145, 120, 0.35);
+    --ink: #2c2a25;
+    --ink-light: #5c574e;
+    --ink-faint: #8a847a;
+    --accent: #6b7c5e;
+    --accent-light: #8fa37a;
+    --blue-ink: #4a5d6e;
+    --border: rgba(120, 110, 95, 0.2);
+    --mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background-color: var(--cream);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(var(--grid-line-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line-major) 1px, transparent 1px);
+    background-size:
+      20px 20px,
+      20px 20px,
+      100px 100px,
+      100px 100px;
+    background-position: -1px -1px;
+    line-height: 1.65;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 6rem 0 4rem;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-family: var(--mono);
+    font-size: 2.4rem;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 1.2rem;
+    color: var(--ink);
+  }
+
+  .hero h1 span {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.6rem;
+  }
+
+  .hero .hook {
+    font-size: 1.1rem;
+    color: var(--ink-light);
+    max-width: 540px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+
+  .hero .cta {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    padding: 0.6rem 1.6rem;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+
+  .hero .cta:hover {
+    background: var(--accent);
+    color: var(--cream);
+  }
+
+  /* Sections */
+  section {
+    padding: 3rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  section h2 {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 1.5rem;
+  }
+
+  section p {
+    color: var(--ink-light);
+    max-width: 640px;
+    margin-bottom: 1rem;
+  }
+
+  /* Pipeline */
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .step {
+    position: relative;
+    padding-left: 2.2rem;
+  }
+
+  .step-num {
+    position: absolute;
+    left: 0;
+    top: 0.15rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step h3 {
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+  }
+
+  .step p {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin-bottom: 0;
+  }
+
+  /* CSV table */
+  .csv-intro {
+    margin-bottom: 1.5rem;
+  }
+
+  .csv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .csv-table th {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: left;
+    color: var(--ink-faint);
+    padding: 0.6rem 1rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .csv-table td {
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-light);
+  }
+
+  .csv-table td:first-child {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--blue-ink);
+    white-space: nowrap;
+  }
+
+  .csv-table td:nth-child(2) {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* Lessons */
+  .lessons {
+    display: grid;
+    gap: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .lesson {
+    padding: 1rem 1.2rem;
+    background: rgba(255, 255, 255, 0.4);
+    border-left: 2px solid var(--accent-light);
+    border-radius: 0 2px 2px 0;
+    font-size: 0.92rem;
+    color: var(--ink-light);
+    line-height: 1.6;
+  }
+
+  /* Ethics */
+  .ethics p {
+    font-style: italic;
+    color: var(--ink-faint);
+  }
+
+  /* Footer */
+  footer {
+    padding: 3rem 0 4rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  footer p {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.03em;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .hero { padding: 4rem 0 3rem; }
+    .hero h1 { font-size: 1.8rem; }
+    .pipeline { grid-template-columns: 1fr; gap: 1.2rem; }
+    .page { padding: 0 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <h1>
+      <span>my-voicebank</span>
+      Your voice. A model.<br>Yours to keep.
+    </h1>
+    <p class="hook">
+      An end-to-end pipeline for training a DiffSinger singing voice model on your own recordings.
+      Record yourself, label the clips, run the pipeline — and walk away with a synthesis model that sounds like you.
+    </p>
+    <a href="https://github.com/alanmaizon/my-voicebank" class="cta">View on GitHub</a>
+  </header>
+
+  <section>
+    <h2>What this is</h2>
+    <p>
+      DiffSinger can generate expressive sung audio from musical scores, but setting up the full training workflow from scratch is a project in itself.
+      This repo wraps the OpenVPI ecosystem — DiffSinger, SOME, Montreal Forced Aligner — into one reproducible workflow you can actually follow start to finish.
+    </p>
+    <p>
+      It is designed for musicians and ML hobbyists who want to build something real, not just run someone else's demo.
+    </p>
+  </section>
+
+  <section>
+    <h2>The pipeline</h2>
+    <div class="pipeline">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Record</h3>
+        <p>Sing short phrases into a dry mono signal at 44.1 kHz. Clean recordings are the foundation — get close to the mic, keep the room quiet, and aim for consistency across sessions.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Label</h3>
+        <p>Scaffold the CSV, type in your lyrics. This is where each clip gets its identity: the text, the expected phonemes, the eventual note data.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Align</h3>
+        <p>Montreal Forced Aligner takes your audio and your lyrics and produces timed phoneme sequences — it figures out exactly when each sound happens.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Extract</h3>
+        <p>SOME listens to the pitch contour of each clip and converts it into discrete note names and durations. Melody becomes notation.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <h3>Train</h3>
+        <p>Binarize your dataset, then hand it off to DiffSinger. A GPU makes this a matter of hours rather than days. The model learns to map notation back to your voice.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <h3>Render</h3>
+        <p>Feed the trained model a score, get sung audio back. That's your voice — synthesized from scratch.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The CSV contract</h2>
+    <p class="csv-intro">
+      Everything flows through a single CSV file: one row per clip, eight columns, no ambiguity.
+      Each stage of the pipeline reads from it and writes back to it.
+      When something breaks, the CSV is where you look first — source of truth, audit trail, and handoff point between every tool in the chain.
+    </p>
+    <table class="csv-table">
+      <thead>
+        <tr><th>Column</th><th>Filled by</th><th>What it holds</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>name</td><td>you</td><td>Clip ID — matches the WAV filename</td></tr>
+        <tr><td>txt</td><td>you</td><td>Sung lyrics for the clip</td></tr>
+        <tr><td>ph_seq</td><td>MFA</td><td>IPA phoneme sequence</td></tr>
+        <tr><td>ph_dur</td><td>MFA</td><td>Duration of each phoneme in seconds</td></tr>
+        <tr><td>ph_num</td><td>MFA</td><td>Phone count per word group</td></tr>
+        <tr><td>note_seq</td><td>SOME</td><td>Note names (C4, rest, ...)</td></tr>
+        <tr><td>note_dur</td><td>SOME</td><td>Duration of each note in seconds</td></tr>
+        <tr><td>comments</td><td>you</td><td>QC flags — prefix with exclude: to skip</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Lessons learned the hard way</h2>
+    <div class="lessons">
+      <div class="lesson">
+        <strong>Back up the CSV before any bulk operation.</strong>
+        Forced alignment will happily overwrite 200 rows at once, and a timestamped backup from thirty seconds ago is a much better friend than git blame.
+      </div>
+      <div class="lesson">
+        <strong>Keep commas out of your lyrics.</strong>
+        The CSV is comma-delimited, and quoting fields to work around it creates subtle parsing bugs that surface at the worst possible moment.
+      </div>
+      <div class="lesson">
+        <strong>Fifty to a hundred clips is enough to start.</strong>
+        You don't need a full album's worth of recordings. Start smaller, iterate faster, add more data once the pipeline is proven end-to-end.
+      </div>
+      <div class="lesson">
+        <strong>Mark bad clips — don't delete them.</strong>
+        Use the <code>exclude:</code> flag. The WAV stays on disk, the row stays in the CSV, and you keep the option to revisit. Deleted data has a way of looking useful a week later.
+      </div>
+      <div class="lesson">
+        <strong>GPU time is not optional in practice.</strong>
+        A T4 or L4 will have a model trained in hours. CPU training is technically possible and will keep you company for several days.
+      </div>
+    </div>
+  </section>
+
+  <section class="ethics">
+    <h2>Ethics</h2>
+    <p>This toolkit is designed for training on your own voice — consent is not an afterthought, it is the premise.</p>
+  </section>
+
+  <footer>
+    <p>Open source. Your voice. No subscription required.</p>
+    <p style="margin-top: 0.8rem;"><a href="https://github.com/alanmaizon/my-voicebank">GitHub</a> &middot; MIT License</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
