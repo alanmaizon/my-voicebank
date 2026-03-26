@@ -49,3 +49,7 @@ renders/ab-tests/*
 # Staging area
 staging/*
 !staging/.gitkeep
+
+# Node Modules
+frontend/node_modules/*
+!forntend/node_modules/.gitkeep
